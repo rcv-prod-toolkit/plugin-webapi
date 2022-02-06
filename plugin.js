@@ -3,6 +3,27 @@ const axios = require('axios');
 
 const sleep = async (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
+function getRegionByServer (server) {
+  switch ((server).toUpperCase()) {
+    case 'NA':
+    case 'BR':
+    case 'LAN':
+    case 'LAS':
+    case 'OCE':
+      return 'AMERICAS'
+    case 'KR':
+    case 'JP':
+      return 'ASIA'
+    case 'EUNE':
+    case 'EUW':
+    case 'TR':
+    case 'RU':
+      return 'EUROPE'
+    default:
+      return 'EUROPE'
+  } 
+}
+
 let apiKey = ''
 let region = ''
 let server = ''
@@ -162,7 +183,9 @@ module.exports = async (ctx) => {
     PLATFORM_ID: config.server || 'euw1'
   });
 
-  apiKey = config.apiKey;
-  region = config.region || 'europe';
-  server = config.server || 'euw1';
-};
+  apiKey = config.apiKey
+  server = (config.server || 'euw1').toLowerCase()
+  region = getRegionByServer(server).toLowerCase()
+
+  ctx.log.info(region)
+}
