@@ -186,6 +186,4 @@ module.exports = async (ctx) => {
   apiKey = config.apiKey
   server = (config.server || 'euw1').toLowerCase()
   region = getRegionByServer(server).toLowerCase()
-
-  ctx.log.info(region)
 }
