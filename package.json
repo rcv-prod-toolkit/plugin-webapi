@@ -1,8 +1,8 @@
 {
-  "name": "provider-webapi",
+  "name": "plugin-webapi",
   "version": "1.0.0",
   "description": "Module to fetch match data from the public League of Legends REST-Api",
-  "author": "Larce",
+  "author": "RCVolus",
   "license": "MIT",
   "toolkit": {
     "modes": [
