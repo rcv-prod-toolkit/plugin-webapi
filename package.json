@@ -11,5 +11,8 @@
     "plugin": {
       "main": "plugin.js"
     }
+  },
+  "dependencies": {
+    "leaguejs": "^2.2.3"
   }
 }
