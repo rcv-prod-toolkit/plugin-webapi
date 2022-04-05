@@ -16,7 +16,7 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Create Zip
-        run: zip -r plugin-webapi.zip package.json plugin.js
+        run: zip -r plugin-webapi.zip package.json package-lock.json plugin.js
 
       - uses: "marvinpinto/action-automatic-releases@latest"
         with:
