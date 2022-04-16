@@ -49,6 +49,8 @@ const getMatchV5TimelineById = async matchId => {
 }
 
 module.exports = async (ctx) => {
+  const namespace = ctx.plugin.module.getName()
+
   let config = {};
   let riotApi
 
@@ -64,7 +66,7 @@ module.exports = async (ctx) => {
     });
   } */
 
-  ctx.LPTE.on('provider-webapi', 'fetch-livegame', async e => {
+  ctx.LPTE.on(namespace, 'fetch-livegame', async e => {
     ctx.log.info(`Fetching livegame data for summoner=${e.summonerName}`);
 
     let retries = 0
@@ -117,7 +119,7 @@ module.exports = async (ctx) => {
     })
   })
 
-  ctx.LPTE.on('provider-webapi', 'fetch-match', async e => {
+  ctx.LPTE.on(namespace, 'fetch-match', async e => {
     ctx.log.info(`Fetching match data for matchid=${e.matchId}`);
 
     const replyMeta = {
@@ -173,7 +175,7 @@ module.exports = async (ctx) => {
   const response = await ctx.LPTE.request({
     meta: {
       type: 'request',
-      namespace: 'config',
+      namespace: 'plugin-config',
       version: 1
     }
   });
