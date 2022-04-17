@@ -169,9 +169,6 @@ module.exports = async (ctx) => {
     status: 'RUNNING'
   });
 
-  // Wait for all plugins to load
-  await ctx.LPTE.await('lpt', 'ready', 150000);
-
   const response = await ctx.LPTE.request({
     meta: {
       type: 'request',
