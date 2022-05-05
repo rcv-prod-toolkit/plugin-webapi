@@ -5,18 +5,18 @@ const sleep = async (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
 function getRegionByServer (server) {
   switch ((server).toUpperCase()) {
-    case 'NA':
-    case 'BR':
-    case 'LAN':
-    case 'LAS':
-    case 'OCE':
+    case 'NA1':
+    case 'BR1':
+    case 'LA1':
+    case 'LA2':
+    case 'OC1':
       return 'AMERICAS'
     case 'KR':
-    case 'JP':
+    case 'JP1':
       return 'ASIA'
-    case 'EUNE':
-    case 'EUW':
-    case 'TR':
+    case 'EUN1':
+    case 'EUW1':
+    case 'TR1':
     case 'RU':
       return 'EUROPE'
     default:
@@ -155,6 +155,47 @@ module.exports = async (ctx) => {
       meta: replyMeta,
       match: gameData,
       timeline: timelineData,
+      failed: false
+    });
+  });
+
+  ctx.LPTE.on(namespace, 'fetch-league', async e => {
+    ctx.log.info(`Fetching League information for summonerName=${e.summonerName}`);
+
+    const replyMeta = {
+      type: e.meta.reply,
+      namespace: 'reply',
+      version: 1
+    };
+
+    let summoner;
+    try {
+      summoner = await riotApi.Summoner.gettingByName(e.summonerName)
+    } catch (error) {
+      ctx.log.error(`Failed to get summoner information for summonerName=${e.summonerName}. error=${error}`);
+      ctx.LPTE.emit({
+        meta: replyMeta,
+        failed: true
+      });
+      return;
+    }
+
+    let data;
+    try {
+      data = await riotApi.League.gettingEntriesForSummonerId(summoner.id)
+    } catch (error) {
+      ctx.log.warn(`Failed to get league information for summoner=${summoner.id}. Maybe the summoner is not ranked yet? error=${error}`);
+      ctx.LPTE.emit({
+        meta: replyMeta,
+        failed: true
+      });
+      return;
+    }
+
+    ctx.log.info(`Fetched League information for summonerName=${e.summonerName}, summonerID=${summoner.id}`);
+    ctx.LPTE.emit({
+      meta: replyMeta,
+      data,
       failed: false
     });
   });
