@@ -5,11 +5,12 @@ const sleep = async (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
 function getRegionByServer (server) {
   switch ((server).toUpperCase()) {
+    case 'OC1':
+      return 'SEA'
     case 'NA1':
     case 'BR1':
     case 'LA1':
     case 'LA2':
-    case 'OC1':
       return 'AMERICAS'
     case 'KR':
     case 'JP1':
@@ -196,6 +197,7 @@ module.exports = async (ctx) => {
     ctx.LPTE.emit({
       meta: replyMeta,
       data,
+      server,
       failed: false
     });
   });
