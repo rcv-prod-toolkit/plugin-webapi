@@ -230,6 +230,18 @@ module.exports = async (ctx) => {
     })
   })
 
+  ctx.LPTE.on(namespace, 'fetch-location', async (e) => {
+    ctx.LPTE.emit({
+      meta: {
+        type: e.meta.reply,
+        namespace: 'reply',
+        version: 1
+      },
+      server,
+      region
+    })
+  })
+
   // Emit event that we're ready to operate
   ctx.LPTE.emit({
     meta: {
