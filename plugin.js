@@ -6,6 +6,11 @@ const sleep = async (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 function getRegionByServer(server) {
   switch (server.toUpperCase()) {
     case 'OC1':
+    case 'PH2':
+    case 'SG2':
+    case 'TH2':
+    case 'TW2':
+    case 'VN2':
       return 'SEA'
     case 'NA1':
     case 'BR1':
