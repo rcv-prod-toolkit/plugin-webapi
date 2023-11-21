@@ -7,7 +7,7 @@ import { ApiResponseDTO, CurrentGameInfoDTO, MatchV5DTOs, MatchV5TimelineDTOs, S
 const sleep = async (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 function getRegionByServer(server: string): Regions {
-  switch (server.toUpperCase()) {
+  switch (server) {
     case 'PBE1':
       return Regions.PBE
     case 'OC1':
@@ -45,7 +45,7 @@ function getRegionByServer(server: string): Regions {
 }
 
 function getRegionGroupByServer(server: string): RegionGroups {
-  switch (server.toUpperCase()) {
+  switch (server) {
     case 'OC1':
     case 'PH2':
     case 'SG2':
@@ -87,13 +87,13 @@ module.exports = async (ctx: PluginContext) => {
   let config: Config = Object.assign(
     {
       apiKey: 'RGAPI-SECRETKEY',
-      server: 'euw1'
+      server: 'EUW1'
     },
     configRes?.config
   )
 
   const key = config.apiKey
-  const server = (config.server || 'euw1').toLowerCase()
+  const server = (config.server || 'EUW1')
   const region = getRegionByServer(server)
   const regionGroup = getRegionGroupByServer(server)
 
