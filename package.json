@@ -9,10 +9,18 @@
       "PLUGIN"
     ],
     "plugin": {
-      "main": "plugin.js"
-    }
+      "main": "dist/plugin.js"
+    },
+    "needsBuild": true
   },
   "dependencies": {
-    "leaguejs": "^2.2.3"
+    "twisted": "^1.54.0"
+  },
+  "scripts": {
+    "build": "tsc"
+  },
+  "devDependencies": {
+    "@rcv-prod-toolkit/types": "github:rcv-prod-toolkit/types",
+    "typescript": "^5.2.2"
   }
 }
