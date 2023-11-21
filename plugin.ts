@@ -2,7 +2,7 @@ import { PluginContext } from '@rcv-prod-toolkit/types'
 import { Config } from './types/Config'
 import { LolApi } from 'twisted'
 import { Regions, RegionGroups } from 'twisted/dist/constants'
-import { ApiResponseDTO, CurrentGameInfoDTO, MatchV5DTOs, MatchV5TimelineDTOs, SpectatorNotAvailableDTO, SummonerV4DTO } from 'twisted/dist/models-dto'
+import { ApiResponseDTO, CurrentGameInfoDTO, MatchV5DTOs, MatchV5TimelineDTOs, SpectatorNotAvailableDTO, SummonerLeagueDto, SummonerV4DTO } from 'twisted/dist/models-dto'
 
 const sleep = async (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
@@ -30,9 +30,9 @@ function getRegionByServer(server: string): Regions {
     case 'JP1':
       return Regions.JAPAN
     case 'EUW1':
-      return Regions.EU_EAST
-    case 'EUN1':
       return Regions.EU_WEST
+    case 'EUN1':
+      return Regions.EU_EAST
     case 'TR1':
       return Regions.TURKEY
     case 'RU':
@@ -175,13 +175,13 @@ module.exports = async (ctx: PluginContext) => {
     )
     ctx.LPTE.emit({
       meta: replyMeta,
-      game: gameInfo,
+      game: gameInfo.response,
       failed: false
     })
   })
 
   ctx.LPTE.on(namespace, 'fetch-match', async (e) => {
-    ctx.log.info(`Fetching match data for matchid=${e.matchId}`)
+    ctx.log.info(`Fetching match data for matchid=${region}_${e.matchId}`)
 
     const replyMeta = {
       type: e.meta.reply as string,
@@ -191,11 +191,10 @@ module.exports = async (ctx: PluginContext) => {
 
     let gameData: ApiResponseDTO<MatchV5DTOs.MatchDto>
     try {
-      // gameData = await riotApi.Match.gettingById(e.matchId);
-      gameData = await api.MatchV5.get(e.matchId, regionGroup)
+      gameData = await api.MatchV5.get(`${region}_${e.matchId}`, regionGroup)
     } catch (error) {
       ctx.log.error(
-        `Failed to get match information for matchId=${e.matchId}. Maybe the match is not over yet? error=${error}`
+        `Failed to get match information for matchId=${region}_${e.matchId}. Maybe the match is not over yet? error=${error}`
       )
       ctx.LPTE.emit({
         meta: replyMeta,
@@ -206,21 +205,21 @@ module.exports = async (ctx: PluginContext) => {
 
     let timelineData: ApiResponseDTO<MatchV5TimelineDTOs.MatchTimelineDto>
     try {
-      timelineData = await api.MatchV5.timeline(e.matchId, regionGroup)
+      timelineData = await api.MatchV5.timeline(`${region}_${e.matchId}`, regionGroup)
     } catch (error) {
       ctx.log.warn(
-        `Failed to get match timeline for matchId=${e.matchId}. Maybe the match is not over yet? Since this is optional, it will be skipped. error=${error}`
+        `Failed to get match timeline for matchId=${region}_${e.matchId}. Maybe the match is not over yet? Since this is optional, it will be skipped. error=${error}`
       )
       return
     }
 
     ctx.log.info(
-      `Fetched match for matchId=${e.matchId}, gameId=${gameData.response.info.gameId}`
+      `Fetched match for matchId=${region}_${e.matchId}, gameId=${gameData.response.info.gameId}`
     )
     ctx.LPTE.emit({
       meta: replyMeta,
-      match: gameData,
-      timeline: timelineData,
+      match: gameData.response,
+      timeline: timelineData.response,
       failed: false
     })
   })
@@ -236,7 +235,7 @@ module.exports = async (ctx: PluginContext) => {
       version: 1
     }
 
-    let summoner
+    let summoner: ApiResponseDTO<SummonerV4DTO>
     try {
       summoner = await api.Summoner.getByName(e.summonerName, region)
     } catch (error) {
@@ -250,7 +249,7 @@ module.exports = async (ctx: PluginContext) => {
       return
     }
 
-    let data
+    let data: ApiResponseDTO<SummonerLeagueDto[]>
     try {
       data = await api.League.bySummoner(summoner.response.id, region)
     } catch (error) {
@@ -269,7 +268,7 @@ module.exports = async (ctx: PluginContext) => {
     )
     ctx.LPTE.emit({
       meta: replyMeta,
-      data,
+      data: data.response,
       server,
       failed: false
     })
