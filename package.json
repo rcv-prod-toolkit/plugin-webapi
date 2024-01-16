@@ -15,7 +15,7 @@
     "needsBuild": true
   },
   "dependencies": {
-    "twisted": "^1.55.0"
+    "twisted": "^1.56.2"
   },
   "scripts": {
     "build": "tsc"
