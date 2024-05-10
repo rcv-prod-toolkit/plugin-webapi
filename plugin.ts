@@ -174,7 +174,7 @@ module.exports = async (ctx: PluginContext) => {
         gameInfo = await api.SpectatorV5.activeGame(summonerInfo.response.puuid, region)
       } catch (error) {
         ctx.log.warn(
-          `Failed to get spectator game information for summoner=${e.summonerName}, encryptedId=${summonerInfo.response.id}. Maybe this summoner is not ingame currently? Retrying. error=${error}`
+          `Failed to get spectator game information for summoner=${e.summonerName}, encryptedId=${summonerInfo.response.puuid}. Maybe this summoner is not ingame currently? Retrying. error=${error}`
         )
         await sleep(2000)
       }
