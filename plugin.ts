@@ -3,6 +3,8 @@ import { Config } from './types/Config'
 import { LolApi } from 'twisted'
 import { Regions, RegionGroups } from 'twisted/dist/constants'
 import { ApiResponseDTO, CurrentGameInfoDTO, MatchV5DTOs, MatchV5TimelineDTOs, SpectatorNotAvailableDTO, SummonerLeagueDto, SummonerV4DTO } from 'twisted/dist/models-dto'
+import { AccountV1Api } from 'twisted/dist/apis/riot/account/account'
+import { AccountDto } from 'twisted/dist/models-dto/account/account.dto'
 
 const sleep = async (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
@@ -117,6 +119,26 @@ module.exports = async (ctx: PluginContext) => {
     key
   })
 
+  const accApi = new AccountV1Api({
+    /**
+    * If api response is 429 (rate limits) try reattempt after needed time (default true)
+    */
+    rateLimitRetry: true,
+    /**
+     * Number of time to retry after rate limit response (default 1)
+     */
+    rateLimitRetryAttempts: 1,
+    /**
+     * Concurrency calls to riot (default infinity)
+     * Concurrency per method (example: summoner api, match api, etc)
+     */
+    concurrency: undefined,
+    /**
+     * Riot games api key
+     */
+    key
+  })
+
 
   ctx.LPTE.on(namespace, 'fetch-livegame', async (e) => {
     ctx.log.info(`Fetching livegame data for summoner=${e.summonerName}`)
@@ -130,9 +152,9 @@ module.exports = async (ctx: PluginContext) => {
       version: 1
     }
 
-    let summonerInfo: ApiResponseDTO<SummonerV4DTO>
+    let summonerInfo: ApiResponseDTO<AccountDto>
     try {
-      summonerInfo = await api.Summoner.getByName(e.summonerName, region)
+      summonerInfo = await accApi.getByRiotId(e.gameName, e.tagLine, regionGroup)
     } catch (error) {
       ctx.log.error(
         `Failed to get information for summoner=${e.summonerName}. Maybe this summoner does not exist? error=${error}`
@@ -149,7 +171,7 @@ module.exports = async (ctx: PluginContext) => {
     while (retries <= desiredRetries) {
       retries++
       try {
-        gameInfo = await api.Spectator.activeGame(summonerInfo.response.id, region)
+        gameInfo = await api.SpectatorV5.activeGame(summonerInfo.response.puuid, region)
       } catch (error) {
         ctx.log.warn(
           `Failed to get spectator game information for summoner=${e.summonerName}, encryptedId=${summonerInfo.response.id}. Maybe this summoner is not ingame currently? Retrying. error=${error}`
@@ -161,7 +183,7 @@ module.exports = async (ctx: PluginContext) => {
 
     if (gameInfo === undefined || 'message' in gameInfo) {
       ctx.log.error(
-        `Failed to get spectator game information for summoner=${e.summonerName}, encryptedId=${summonerInfo.response.id}, after retries.`
+        `Failed to get spectator game information for summoner=${e.summonerName}, encryptedId=${summonerInfo.response.puuid}, after retries.`
       )
       ctx.LPTE.emit({
         meta: replyMeta,
@@ -235,12 +257,26 @@ module.exports = async (ctx: PluginContext) => {
       version: 1
     }
 
-    let summoner: ApiResponseDTO<SummonerV4DTO>
+    let acc: ApiResponseDTO<AccountDto>
     try {
-      summoner = await api.Summoner.getByName(e.summonerName, region)
+      acc = await accApi.getByRiotId(e.gameName, e.tagLine, regionGroup)
     } catch (error) {
       ctx.log.error(
         `Failed to get summoner information for summonerName=${e.summonerName}. error=${error}`
+      )
+      ctx.LPTE.emit({
+        meta: replyMeta,
+        failed: true
+      })
+      return
+    }
+
+    let summoner: ApiResponseDTO<SummonerV4DTO>
+    try {
+      summoner = await api.Summoner.getByPUUID(acc.response.puuid, region)
+    } catch (error) {
+      ctx.log.error(
+        `Failed to get summoner information for summonerName=${acc.response.puuid}. error=${error}`
       )
       ctx.LPTE.emit({
         meta: replyMeta,
